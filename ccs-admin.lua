@@ -26,6 +26,12 @@ Nov. 2025
 
 - run from inside project working directory 
 - specify project metadata(version, command strings, etc) inside "metadata.json"
+
+Execution Order
+1. increment version string (optional)
+2. execute pre-build commands (optional)
+3. execute ccs command
+4. execute post-build commands (optional)
 ]])
 
 -- default globals
@@ -255,6 +261,15 @@ parser
             project_config_profile = arg 
         end)
 
+
+parser
+    :flag("--pre")
+    :description("set to run pre build commands")
+
+parser
+    :flag("--post")
+    :description("set to run post build commands")
+
 parser
     :flag("-c --clean")
     :description("set to clean before build(rebuild)")
@@ -284,12 +299,17 @@ parser
     :description("print expected structure and fields of json file(note json not req'd to CLI use)")
     :action(function() print_expected_json_structure() end)
 
+
+--[[
+-- Step 3/3: Execute!
+--]]
 json_load_meta_file(json_meta_fn)
 configure_globals_from_json()
 print("[DEBUG] executing pre-build commands")
-execute_pre_build_scripts()
 
 local args = parser:parse()
+
+if args.pre then execute_pre_build_scripts() end
 
 if project_name == nil then 
     print("[ERROR] no project name provided, aborting")
@@ -315,4 +335,4 @@ else
 end
 
 print("[DEBUG] executing post-build commands")
-execute_post_build_scripts()
+if args.post then execute_post_build_scripts() end
