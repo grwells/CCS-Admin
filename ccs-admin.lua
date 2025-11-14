@@ -69,15 +69,14 @@ local function configure_globals_from_json()
             if json_meta.project.configuration then 
                 project_config_profile = json_meta.project.configuration 
             end
+            print("[DEBUG] configured globals:", "\nNAME:      "..project_name, "\nPROFILE:   "..project_config_profile, "\nPATH:      "..project_path,
+            "\nWORKSPACE: "..ccs_wkspc_dir)
         else 
             print("[ERROR] no project field")
         end
     else
         print("[ERROR] no json obj")
     end
-    print("[DEBUG] configured globals:", project_name, project_config_profile, "\n",
-    project_path, "\n",
-    ccs_wkspc_dir)
 
 end
 
@@ -93,7 +92,6 @@ local function json_load_meta_file(fn)
     if err then print("[ERROR]", err) end
 
     json_meta = obj
-    print("loaded json")
     return obj
 end
 
@@ -305,11 +303,13 @@ parser
 --]]
 json_load_meta_file(json_meta_fn)
 configure_globals_from_json()
-print("[DEBUG] executing pre-build commands")
 
 local args = parser:parse()
 
-if args.pre then execute_pre_build_scripts() end
+if args.pre then 
+    print("[DEBUG] executing pre-build commands")
+    execute_pre_build_scripts()
+end
 
 if project_name == nil then 
     print("[ERROR] no project name provided, aborting")
@@ -334,5 +334,7 @@ else
     print("[DEBUG] unrecognized CCS action", args.action)
 end
 
-print("[DEBUG] executing post-build commands")
-if args.post then execute_post_build_scripts() end
+if args.post then 
+    print("[DEBUG] executing post-build commands")
+    execute_post_build_scripts() 
+end
