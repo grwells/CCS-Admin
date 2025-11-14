@@ -1,0 +1,20 @@
+{
+    "version":
+    {
+        "major": 0,
+        "minor": 0,
+        "patch": 0
+    },
+    "project": {
+        "name": "Dsa5000",
+        "path": "~/Documents/Bitbucket/Dsa5000",
+        "workspace": "~/Documents/Bitbucket/Dsa5000/dev_wkspc_10-30-25.theia-workspace",
+        "configuration": "Release_Linux"
+    },
+    "version_cmd":
+    {
+        "major": "lua ~/Documents/GitHub/CSemantic-Version/csemantic-ver.lua -Msw",
+        "minor": "lua ~/Documents/GitHub/CSemantic-Version/csemantic-ver.lua -msw",
+        "patch": "lua ~/Documents/GitHub/CSemantic-Version/csemantic-ver.lua -psw"
+    }
+}
