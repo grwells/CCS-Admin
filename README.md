@@ -11,3 +11,10 @@ Provides workflow automation by:
     3. Post-build Commands - the ability to specify list of commands to be executed _after_ building (_ex._ package/rename binaries).
 
 3. Generally making everything **less verbose**.
+
+# Installation
+
+1. Copy to binary directory on path, for example: `cp ccs-admin.lua /usr/local/bin/ccs-admin`
+2. Make a hard link to provide a shortcut if desired, ex.: `ln -i /usr/local/bin/ccs /usr/local/bin/ccs-admin`
+3. Make sure the link is executable. `chmod +x /usr/local/bin/ccs`
+4. Run to test. `ccs -h`

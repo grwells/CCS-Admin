@@ -259,7 +259,6 @@ parser
             project_config_profile = arg 
         end)
 
-
 parser
     :flag("--pre")
     :description("set to run pre build commands")
@@ -271,6 +270,16 @@ parser
 parser
     :flag("-c --clean")
     :description("set to clean before build(rebuild)")
+
+parser
+    :flag("--list")
+    :description("list/print contents of the metadata file")
+    :action(
+        function()
+            local json_str = json.encode(json_meta, {indent = true})
+            print("[DEBUG] list of metadata contents\n",json_str)
+        end
+    )
 
 parser
     :option("-w --workspace-profile")
