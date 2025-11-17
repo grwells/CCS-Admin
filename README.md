@@ -18,3 +18,6 @@ Provides workflow automation by:
 2. Make a hard link to provide a shortcut if desired, ex.: `ln -i /usr/local/bin/ccs /usr/local/bin/ccs-admin`
 3. Make sure the link is executable. `chmod +x /usr/local/bin/ccs`
 4. Run to test. `ccs -h`
+
+# Example 
+![help output](./docs/images/ccs-admin-help.png)
