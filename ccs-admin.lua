@@ -203,8 +203,13 @@ local function build_project(workspace, name, clean, configuration)
                         configuration
     end
 
-    local cmd_str = string.format(ccs_eclipse_dir .. ccs_format_str ..
-                                " | grep -E --color=always \'error|warning|$\'", 
+    -- [[
+    --local cmd_str = string.format(ccs_eclipse_dir .. ccs_format_str ..
+     --                           " | grep -E --color=always \'error|warning|$\'", 
+      --                          workspace, 
+       --                         name)
+    -- ]]
+    local cmd_str = string.format(ccs_eclipse_dir .. ccs_format_str,
                                 workspace, 
                                 name)
     print(">", cmd_str)
