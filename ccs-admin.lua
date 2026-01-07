@@ -38,7 +38,7 @@ Execution Order
 local json_meta_fn = "metadata.json"
 local json_meta = nil
 
-local ccs_eclipse_dir = "~/ti/ccs2020/ccs/eclipse/"
+local ccs_eclipse_dir = "~/ti/ccs2040/ccs/eclipse/"
 local ccs_wkspc_dir = "."
 local project_name = nil
 local project_path = nil
@@ -159,9 +159,7 @@ end
 local function create_project(proj_path, workspace, 
                             proj_spec, name, device)
     local ccs_format_str =
-            "ccs-server-cli.sh -noSplash -workspace %s \z
-            -application com.ti.ccs.apps.createProject \z
-            (-ccs.projectSpec %s | -ccs.name %s -ccs.device %s)"
+            [[ccs-server-cli.sh -noSplash -workspace %s -application com.ti.ccs.apps.createProject (-ccs.projectSpec %s | -ccs.name %s -ccs.device %s)]]
     local cmd_str = string.format(ccs_eclipse_dir .. ccs_format_str, 
                                 workspace, 
                                 proj_spec, 
@@ -172,9 +170,7 @@ end
 
 local function import_project(workspace, path)
     local ccs_format_str =
-            "ccs-server-cli.sh -noSplash -workspace %s \z
-            -application com.ti.ccs.apps.importProject \z
-            -ccs.location %s"
+            [[ccs-server-cli.sh -noSplash -workspace %s -application com.ti.ccs.apps.importProject -ccs.location %s]]
     local cmd_str = string.format(ccs_eclipse_dir .. ccs_format_str, 
                                 workspace, 
                                 path)
@@ -185,13 +181,7 @@ end
 local function build_project(workspace, name, clean, configuration)
     clean = clean or false
 
-    local ccs_format_str = "ccs-server-cli.sh \z
-                -noSplash \z
-                -ccs.autoOpen \z
-                -ccs.autoImport \z
-                -workspace %s \z
-                -application com.ti.ccs.apps.buildProject \z
-                -ccs.projects %s"
+    local ccs_format_str = "ccs-server-cli.sh  -noSplash \z -ccs.autoOpen \z -ccs.autoImport \z -workspace %s \z -application com.ti.ccs.apps.buildProject \z -ccs.projects %s"
 
     if clean then
         ccs_format_str = ccs_format_str .. " -ccs.clean"
@@ -223,12 +213,7 @@ local function inspect_project(workspace, name, errors, problems, variables, bui
     variables = variables or true
     build_opts = build_opts or true
 
-    local ccs_format_str = ccs_eclipse_dir .. "ccs-server-cli.sh \z
-                    -noSplash \z
-                    -ccs.format:json \z
-                    -workspace %s \z
-                    -application com.ti.ccs.apps.inspect \z
-                    -ccs.projects %s "
+    local ccs_format_str = ccs_eclipse_dir .. "ccs-server-cli.sh -noSplash -ccs.format:json -workspace %s -application com.ti.ccs.apps.inspect -ccs.projects %s"
 
     if errors then ccs_format_str = ccs_format_str .. "-ccs.projects:listErrors " end
     if problems then ccs_format_str = ccs_format_str .. "-ccs.projects:listProblems " end
