@@ -42,7 +42,7 @@ local ccs_eclipse_dir = "~/ti/ccs2040/ccs/eclipse/"
 local ccs_wkspc_dir = "."
 local project_name = nil
 local project_path = nil
-local project_config_profile = "Debug"
+local project_config_profile = nil
 
 --[[
 -- API Definition
@@ -181,7 +181,7 @@ end
 local function build_project(workspace, name, clean, configuration)
     clean = clean or false
 
-    local ccs_format_str = "ccs-server-cli.sh  -noSplash \z -ccs.autoOpen \z -ccs.autoImport \z -workspace %s \z -application com.ti.ccs.apps.buildProject \z -ccs.projects %s"
+    local ccs_format_str = "ccs-server-cli.sh -noSplash -ccs.autoOpen -ccs.autoImport -workspace %s -application com.ti.ccs.apps.buildProject -ccs.projects %s"
 
     if clean then
         ccs_format_str = ccs_format_str .. " -ccs.clean"
@@ -234,20 +234,11 @@ parser
     :argument("project")
     :args("?")
     :description("specify name of project to build, must be inside workspace")
-    :action(
-        function(res_tbl, ndx, arg, flag) 
-            if project_name == nil then 
-                project_name = arg 
-            end
-        end)
 
 parser
-    :option("-c --configuration")
+    :option("--config")
     :description("specify which project configuration profile to build")
-    :action(
-        function(res_tbl, ndx, arg, flag) 
-            project_config_profile = arg 
-        end)
+    :args(1)
 
 parser
     :flag("--pre")
@@ -305,12 +296,23 @@ configure_globals_from_json()
 
 local args = parser:parse()
 
+print("args.project", args.project)
+if args.project then 
+    project_name = args.project
+end
+
+print("args.config", args.config)
+if args.config then
+    project_config_profile = args.config
+end
+
 if args.pre then 
     print("[DEBUG] executing pre-build commands")
     execute_pre_build_scripts()
 end
 
 if project_name == nil then 
+    print("[DEBUG] args project name", args.project_name)
     print("[ERROR] no project name provided, aborting")
     os.exit()
 end
