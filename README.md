@@ -35,7 +35,7 @@ Provides workflow automation by:
 
 2. Edit project `metadata.json` by setting `"ccs_version": <your-ccs-version>`. 
 
-    - _**NOTE:** `<your-ccs-version>` should be just the major version, _i.e. 12 or 20._
+    - _**NOTE:** `<your-ccs-version>` should be just the major version, i.e. 12 or 20._
     - If nothing is specified, or an invalid value is specified, the script will default to the latest supported version (v20 probably).
 
 # Example 
