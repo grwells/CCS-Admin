@@ -27,11 +27,11 @@ Nov. 2025
 - run from inside project working directory 
 - specify project metadata(version, command strings, etc) inside "metadata.json"
 
-Execution Order
-1. increment version string (optional)
-2. execute pre-build commands (optional)
-3. execute ccs command
-4. execute post-build commands (optional)
+Order of Operations:
+1. increment version string     (flag)
+2. execute pre-build commands   (flag)
+3. execute ccs action           create/build(default)/inspect
+4. execute post-build commands  (flag)
 ]])
 
 -- default globals
@@ -177,7 +177,7 @@ end
 
 local ccs_vers = {12,20}
 local ccs_cmd_strs = {
-    [12] = "eclipse -noSplash -data -workspace %s -application com.ti.ccstudio.apps.projectBuild -ccs.projects %s",
+    [12] = "eclipse -noSplash -data %s -application com.ti.ccstudio.apps.projectBuild -ccs.projects %s",
     [20] = "ccs-server-cli.sh -noSplash -ccs.autoOpen -ccs.autoImport -workspace %s -application com.ti.ccs.apps.buildProject -ccs.projects %s"
 }
 
@@ -336,8 +336,8 @@ parser
     :action(function(res_tbl,ndx,arg,flag) verbose = true end)
 
 parser
-    :option("-w --workspace-profile")
-    :description("optionally specify the workspace profile file location")
+    :option("-w --workspace")
+    :description("optionally specify the workspace profile file(>=v20)/directory(<=v12) location")
     :action(function(res_tbl, ndx, arg, flag) ccs_wkspc_dir = arg end)
 
 parser
