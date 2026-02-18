@@ -35,6 +35,7 @@ Order of Operations:
 ]])
 
 -- default globals
+local actions = {"create", "build", "inspect", "util"}
 local json_meta_fn = "metadata.json"
 local json_meta = nil
 
@@ -56,7 +57,7 @@ local json_template = {
         ["path"] = "<path/to/project/directory>",
         ["workspace"] = "<path/to/workspace/file.theia-workspace>",
         ["configuration"] = "<default-build-profile-like-Debug>",
-        ["ccs_version"] = "<12-or-20-etc>",
+        ["ccs_version"] = 20,
     },
     ["pre_build_cmds"] = {"list", "of", "cmds","executed in shell before build"},
     ["post_build_cmds"] =  {"list", "of", "cmds","executed in shell after build"},
@@ -65,60 +66,55 @@ local json_template = {
 --[[
 -- API Definition
 --]]
-
-local function configure_globals_from_json()
-    if json_meta then
-        if json_meta.project then
-            --local json_str = json.encode(json_meta.project, {indent = true})
-            --print(json_str)
-            if json_meta.project.ccs_version then 
-                ccs_ver = json_meta.project.ccs_version
+local function configure_globals_from_json(jsonobj)
+    if jsonobj then
+        if jsonobj.project then
+            if jsonobj.project.ccs_version then 
+                ccs_ver = jsonobj.project.ccs_version
+                if verbose then print("CCS VERSION: v"..ccs_ver) end
             end
             -- check for name
-            if json_meta.project.name then 
-                project_name = json_meta.project.name 
+            if jsonobj.project.name then 
+                project_name = jsonobj.project.name 
+                if verbose then print("NAME       : "..project_name) end
             end
 
-            if json_meta.project.path then 
-                project_path = json_meta.project.path
+            if jsonobj.project.path then 
+                project_path = jsonobj.project.path
+                if verbose then print("PATH       : "..project_path) end
             end
             -- check for workspace
-            if json_meta.project.workspace then 
-                ccs_wkspc_dir = json_meta.project.workspace 
+            if jsonobj.project.workspace then 
+                ccs_wkspc_dir = jsonobj.project.workspace 
+                if verbose then print("WORKSPACE  : "..ccs_wkspc_dir) end
             end
             -- check for project configuration
-            if json_meta.project.configuration then 
-                project_config_profile = json_meta.project.configuration 
+            if jsonobj.project.configuration then 
+                project_config_profile = jsonobj.project.configuration 
+                if verbose then print("PROFILE    : "..project_config_profile) end
             end
-
-            if verbose then
-                print("\nNAME       : "..project_name, 
-                      "\nPROFILE    : "..project_config_profile, 
-                      "\nPATH       : "..project_path,
-                      "\nWORKSPACE  : "..ccs_wkspc_dir, 
-                      "\nCCS VERSION: v".. ccs_ver)
-            end
-        else 
-            print("[ERROR] no project field")
         end
-    else
-        print("[ERROR] no json obj")
+    elseif verbose then
+        print("[ ERROR ] no json object found")
     end
 
 end
 
 local function json_load_meta_file(fn)
     local file = io.open(fn, "rb")
-    if not file then return nil end
+    if file == nil then
+        if verbose then 
+            print("[ ERROR ] could not find file: ", fn)
+        end
+        return nil
+    end
 
     local content = file:read "*a" -- read whole file
     file:close()
 
     local obj, pos, err = json.decode(content, 1, nil)
+    if err then print("[ ERROR ] json parse: ", err) end
 
-    if err then print("[ERROR]", err) end
-
-    json_meta = obj
     return obj
 end
 
@@ -293,8 +289,8 @@ end
 parser
     :argument("action")
     :description("select what action to take such as create new project or build/inspect existing project")
-    :choices {"create", "build", "inspect"}
-    :default("build")
+    :choices(actions)
+    :default("util")
     
 parser
     :argument("project")
@@ -319,10 +315,11 @@ parser
     :description("set to clean before build(rebuild)")
 
 parser
-    :flag("--list")
+    :flag("-l --list")
     :description("list/print contents of the metadata file")
     :action(
         function()
+            json_meta = json_load_meta_file(json_meta_fn)
             local json_str = json.encode(json_meta, {indent = true})
             if verbose then
                 print("[ DEBUG ] list of metadata contents\n",json_str)
@@ -341,17 +338,17 @@ parser
     :action(function(res_tbl, ndx, arg, flag) ccs_wkspc_dir = arg end)
 
 parser
-    :flag("--increment-patch")
+    :flag("-p --increment-patch")
     :description("increments the SW version string header(always before build) using the script command in metadata.json")
     :action(function() execute_version_increment_script("p") end)
 
 parser
-    :flag("--increment-minor")
+    :flag("-m --increment-minor")
     :description("increments the SW version string header(always before build) using the script command in metadata.json")
     :action(function() execute_version_increment_script("m") end)
 
 parser
-    :flag("--increment-major")
+    :flag("-M --increment-major")
     :description("increments the SW version string header(always before build) using the script command in metadata.json")
     :action(function() execute_version_increment_script("M") end)
 
@@ -364,11 +361,19 @@ parser
 --[[
 -- Step 3/3: Execute!
 --]]
-json_load_meta_file(json_meta_fn)
-configure_globals_from_json()
-
 local args = parser:parse()
+    
+-- attempt to load metadata
+-- no errors printed if not found unless in verbose mode
+json_meta = json_load_meta_file(json_meta_fn)
+if json_meta ~= nil then
+    configure_globals_from_json(json_meta)
+end
 
+-- [[
+-- Flags defining information for needed for build
+-- supersede/override metadata file content(if present).
+-- ]]
 if args.project then 
     project_name = args.project
 end
@@ -387,7 +392,7 @@ end
 
 -- check that project name is defined - required for builds
 if project_name == nil then 
-    print("[ERROR] no project name provided, aborting")
+    print("[ ERROR ] no project name provided, aborting")
     os.exit()
 end
 
@@ -407,7 +412,9 @@ elseif args.action == "inspect" then
     inspect_project(
     ccs_wkspc_dir,
     project_name)
-else 
+elseif args.action == "util" then 
+    -- do something
+else
     if verbose then
         print("[ DEBUG ] unrecognized CCS action", args.action)
     end
