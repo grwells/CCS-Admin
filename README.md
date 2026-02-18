@@ -1,6 +1,6 @@
 # CCS-Admin
 
-Script for creating/building/inspecting CCStudio projects from the command line using Lua. 
+Script for headless CCS builds as well as creating/building/inspecting CCStudio projects from the command line implemented in Lua. Provides customization options for running pre & post build step commands.
 
 Provides workflow automation by:
 
