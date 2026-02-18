@@ -267,17 +267,29 @@ local function build_project(ccs_ver, workspace, name, clean, configuration)
 end
 
 local function inspect_project(workspace, name, errors, problems, variables, build_opts)
+    -- default to true
     errors = errors or true
     problems = problems or true
     variables = variables or true
     build_opts = build_opts or true
 
-    local ccs_format_str = "ccs-server-cli.sh -noSplash -ccs.format:json -workspace %s -application com.ti.ccs.apps.inspect -ccs.projects %s"
+    local ccs_format_str = ""
+    if ccs_ver == 12 then
+        ccs_format_str = ccs_format_str.."eclipse -noSplash -data % -ccs.format:json -application com.ti.ccs.apps.inspect"
+    elseif ccs_ver == 20 then
+        ccs_format_str = ccs_format_str.."ccs-server-cli.sh -workspace %s"
+    else 
+        print("[ ERROR ] no known ccs version matching", ccs_ver)
+    end
 
-    if errors then ccs_format_str = ccs_format_str .. "-ccs.projects:listErrors " end
-    if problems then ccs_format_str = ccs_format_str .. "-ccs.projects:listProblems " end
-    if variables then ccs_format_str = ccs_format_str .. "-ccs.projects:listVariables" end
-    if build_opts then ccs_format_str = ccs_format_str .. "-ccs.projects:showBuildOptions " end
+    ccs_format_str = ccs_format_str.." -application com.ti.ccs.apps.inspect -ccs.projects %s"
+
+    if errors then ccs_format_str = ccs_format_str .. " -ccs.projects:listErrors" end
+    if problems then ccs_format_str = ccs_format_str .. " -ccs.projects:listProblems" end
+    if variables then ccs_format_str = ccs_format_str .. " -ccs.projects:listVariables" end
+    if build_opts then ccs_format_str = ccs_format_str .. " -ccs.projects:showBuildOptions" end
+
+    ccs_format_str = ccs_format_str.." -ccs.format:json"
 
     local cmd_str = string.format(ccs_format_str, workspace, name)
     if verbose then
@@ -369,6 +381,9 @@ json_meta = json_load_meta_file(json_meta_fn)
 if json_meta ~= nil then
     configure_globals_from_json(json_meta)
 end
+
+-- set defaults as needed
+if ccs_ver == nil then ccs_ver = ccs_vers[#ccs_vers] end -- set default version to latest
 
 -- [[
 -- Flags defining information for needed for build
