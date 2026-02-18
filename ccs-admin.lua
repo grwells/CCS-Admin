@@ -178,7 +178,7 @@ local ccs_cmd_strs = {
 }
 
 -- format a string that can be executed
-local function get_build_cmd(ver, workspace, name, clean, configuration)
+local function get_build_cmd(ver, workspace, name, buildtype, configuration)
 
     local ccs_format_str = nil
     if ccs_cmd_strs[ver] == nil then 
@@ -188,8 +188,8 @@ local function get_build_cmd(ver, workspace, name, clean, configuration)
         ccs_format_str = ccs_cmd_strs[ver]
     end
 
-    if clean then -- clean before build
-        ccs_format_str = ccs_format_str .. " -ccs.clean"
+    if buildtype then -- specify build type, otherwise defaults to incremental
+        ccs_format_str = ccs_format_str .." -ccs.buildType "..buildtype
     end
 
     if configuration then -- build specified configuration profile
@@ -201,10 +201,6 @@ local function get_build_cmd(ver, workspace, name, clean, configuration)
     local cmd_str = string.format(ccs_format_str,
                                   workspace, 
                                   name)
-
-    if verbose then
-        print(cmd_str)
-    end
     return cmd_str
 end
 
@@ -259,11 +255,15 @@ local function build_project(ccs_ver, workspace, name, clean, configuration)
         os.execute()
     end
 
-    cmd_str = get_build_cmd(ccs_ver, workspace, name, clean, configuration)
-    if verbose then
-        print(cmd_str)
+    if clean then  -- clean then full rebuild
+        cmd_str = get_build_cmd(ccs_ver, workspace, name, "full", configuration)
+        if verbose then print(cmd_str) end
+        os.execute(cmd_str)
+    else -- default to incremental build
+        cmd_str = get_build_cmd(ccs_ver, workspace, name, nil, configuration)
+        if verbose then print(cmd_str) end
+        os.execute(cmd_str)
     end
-    os.execute(cmd_str)
 end
 
 local function inspect_project(workspace, name, errors, problems, variables, build_opts)
@@ -312,7 +312,7 @@ parser
 
 parser
     :flag("-c --clean")
-    :description("set to clean before build(rebuild)")
+    :description("set to clean before full build(rebuild)")
 
 parser
     :flag("-l --list")
@@ -376,10 +376,17 @@ end
 -- ]]
 if args.project then 
     project_name = args.project
+    if verbose then print("[ DEBUG ] building project:", args.workspace) end
 end
 
 if args.config then
     project_config_profile = args.config
+    if verbose then print("[ DEBUG ] building config:", args.workspace) end
+end
+
+if args.workspace then 
+    ccs_wkspc_dir = args.workspace
+    if verbose then print("[ DEBUG ] workspace:", args.workspace) end
 end
 
 -- 1/3 Execute Pre-Build Commands
